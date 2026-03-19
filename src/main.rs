@@ -7,10 +7,17 @@ struct Cli {
     command: Commands,
 }
 
+/// A cli tool for interacting with sqlite databases
 #[derive(Subcommand)]
 enum Commands {
     /// Util to provide info on a given sqlite database
     Info { 
+        /// Path to the sqlite database file
+        path: String
+    },
+
+    /// Print the content of a sqlite database to stdout
+    Cat{
         /// Path to the sqlite database file
         path: String
     },
@@ -35,6 +42,9 @@ fn main() {
     match &cli.command {
         Commands::Info { path } => {
             println!("You want to inspect: {}", path);
+        }
+        Commands::Cat { path } => {
+            println!("You want to print the content of: {}", path);
         }
         Commands::Merge { paths, output } => {
             println!("Merging databases: {:?} into {}", paths, output);
