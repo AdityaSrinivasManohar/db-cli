@@ -10,8 +10,8 @@ pub fn print_db_info(path: &Path) -> Result<()> {
     )?;
     let table_names = stmt.query_map([], |row| row.get::<_, String>(0))?;
 
-    println!("{:<3} | {:<20} | {:<10}", "No.", "Table Name", "Rows");
-    println!("{}", "-".repeat(35));
+    println!("{:<3} | {:<20} | {:<10} | {:<10}", "No.", "Table Name", "Rows", "Columns");
+    println!("{}", "-".repeat(50));
 
     for (index, name_result) in table_names.enumerate() {
         let name = name_result?;
@@ -24,8 +24,14 @@ pub fn print_db_info(path: &Path) -> Result<()> {
                                                // In this case, we are using it to extract the row 
                                                // count from the result of the query.
         )?;
+        
+        // 2. Get Column Count
+        // PRAGMA table_info returns one row for every column in the table
+        let mut col_stmt = conn.prepare(&format!("PRAGMA table_info(\"{}\")", name))?;
+        let column_results = col_stmt.query_map([], |_| Ok(()))?; 
+        let column_count = column_results.count();
 
-        println!("{:<3} | {:<20} | {:<10}", index + 1, name, row_count);
+        println!("{:<3} | {:<20} | {:<10} | {:<10}", index + 1, name, row_count, column_count);
     }
     Ok(())
 }
