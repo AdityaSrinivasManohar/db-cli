@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
+use std::process::exit;
 
 #[derive(Parser)]
 #[command(version)]
@@ -42,7 +43,7 @@ fn get_absolute_path(path: &PathBuf) -> PathBuf {
         Ok(p) => p,
         Err(e) => {
             eprintln!("Error: {} - {}", path.display(), e);
-            std::process::exit(1);
+            exit(1);
         }
     }
 }
@@ -63,13 +64,13 @@ fn main() {
             // Validate if we have at least 2 paths to merge
             if paths.len() < 2 {
                 eprintln!("Error: You need at least 2 databases to perform a merge.");
-                return;
+                exit(1);
             }
 
             if let Some(parent) = output.parent() {
                 if !parent.exists() && parent != std::path::Path::new("") {
-                    eprintln!("Error: The parents directory for output path '{}' does not exist.", parent.display());
-                    return;
+                    eprintln!("Error: The parents directory for output '{}' does not exist.", parent.display());
+                    exit(1);
                 }
             }
 
