@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(version)]
@@ -13,23 +14,23 @@ enum Commands {
     /// Util to provide info on a given sqlite database
     Info { 
         /// Path to the sqlite database file
-        path: String
+        path: PathBuf
     },
 
     /// Print the content of a sqlite database to stdout
     Cat{
         /// Path to the sqlite database file
-        path: String
+        path: PathBuf
     },
 
     /// Merge multiple sqlite databases into one
     Merge{
         /// Paths to the sqlite database files to merge
-        paths: Vec<String>,
+        paths: Vec<PathBuf>,
 
         /// Output path for the merged database
         #[arg(short, long)] // This makes it -o or --output
-        output: String,
+        output: PathBuf,
     },
 
     /// Version
@@ -41,13 +42,41 @@ fn main() {
 
     match &cli.command {
         Commands::Info { path } => {
-            println!("You want to inspect: {}", path);
+            match path.canonicalize() {
+                Ok(full_path) => println!("Inspecting absolute path: {}", full_path.display()),
+                Err(err) => {
+                    eprintln!("Could not find file at {} \nError: {}", path.display(), err);
+                    return;
+                }
+            }
         }
         Commands::Cat { path } => {
-            println!("You want to print the content of: {}", path);
+            match path.canonicalize() {
+                Ok(full_path) => println!("Printing content of: {}", full_path.display()),
+                Err(err) => {
+                    eprintln!("Could not find file at {} \nError: {}", path.display(), err);
+                    return;
+                }
+            }
         }
         Commands::Merge { paths, output } => {
-            println!("Merging databases: {:?} into {}", paths, output);
+            let mut valid_paths = Vec::new();
+            for path in paths {
+                match path.canonicalize() {
+                    Ok(full_path) => {valid_paths.push(full_path);},
+                    Err(err) => {
+                        eprintln!("Could not find file at {} \nError: {}", path.display(), err);
+                        return;
+                    },
+                }
+            }
+
+            // If we got here, all paths are valid
+            println!("Merging files:");
+            for path in &valid_paths {
+                println!("- {}", path.display());
+            }
+            println!("into {}", output.display());
         }
         Commands::Version => {
             let version = env!("CARGO_PKG_VERSION");
