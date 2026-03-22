@@ -66,6 +66,13 @@ fn main() {
                 return;
             }
 
+            if let Some(parent) = output.parent() {
+                if !parent.exists() && parent != std::path::Path::new("") {
+                    eprintln!("Error: The parents directory for output path '{}' does not exist.", parent.display());
+                    return;
+                }
+            }
+
             let mut valid_paths = Vec::new();
             for path in paths {
                 let full_path = get_absolute_path(path);
