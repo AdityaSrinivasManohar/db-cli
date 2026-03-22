@@ -8,11 +8,11 @@ pub fn print_db_info(path: &Path) -> Result<()> {
     let mut stmt = conn.prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
     )?;
-    
     let table_names = stmt.query_map([], |row| row.get::<_, String>(0))?;
 
-    println!("{:<20} | {:<10}", "Table Name", "Rows");
-    println!("{}", "-".repeat(33));
+    let mut table_count:i64 = 0;
+    println!("{:<3} | {:<20} | {:<10}", "No.", "Table Name", "Rows");
+    println!("{}", "-".repeat(35));
 
     for name_result in table_names {
         let name = name_result?;
@@ -26,7 +26,8 @@ pub fn print_db_info(path: &Path) -> Result<()> {
                                                // count from the result of the query.
         )?;
 
-        println!("{:<20} | {:<10}", name, row_count);
+        table_count += 1;
+        println!("{:<3} | {:<20} | {:<10}", table_count, name, row_count);
     }
     Ok(())
 }
