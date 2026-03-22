@@ -1,4 +1,5 @@
 mod info;
+mod cat;
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -23,7 +24,9 @@ enum Commands {
     /// Print the content of a sqlite database to stdout
     Cat{
         /// Path to the sqlite database file
-        path: PathBuf
+        path: PathBuf,
+        /// Name of the table to print out
+        table: String
     },
 
     /// Merge multiple sqlite databases into one
@@ -63,9 +66,13 @@ fn main() {
                 exit(1);
             }
         }
-        Commands::Cat { path } => {
+        Commands::Cat { path, table } => {
             let full_path = get_absolute_path(path);
-            println!("Printing content of: {}", full_path.display());
+            println!("Printing content of table '{}' from: {}", table, full_path.display());
+            if let Err(e) = cat::print_table_content(&full_path, table) {
+                eprintln!("Error reading table '{}': {}", table, e);
+                std::process::exit(1);
+            }
         }
         Commands::Merge { paths, output } => {
             // Validate if we have at least 2 paths to merge
