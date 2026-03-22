@@ -1,3 +1,5 @@
+mod info;
+
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use std::process::exit;
@@ -55,6 +57,11 @@ fn main() {
         Commands::Info { path } => {
             let full_path = get_absolute_path(path);
             println!("Inspecting absolute path: {}", full_path.display());
+
+            if let Err(e) = info::print_db_info(&full_path) {
+                eprintln!("Error reading database: {}", e);
+                exit(1);
+            }
         }
         Commands::Cat { path } => {
             let full_path = get_absolute_path(path);
