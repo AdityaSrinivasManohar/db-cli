@@ -56,7 +56,7 @@ fn main() {
     match &cli.command {
         Commands::Info { path } => {
             let full_path = get_absolute_path(path);
-            println!("Inspecting absolute path: {}", full_path.display());
+            println!("Inspecting database at: {} \n", full_path.display());
 
             if let Err(e) = info::print_db_info(&full_path) {
                 eprintln!("Error reading database: {}", e);

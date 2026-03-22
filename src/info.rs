@@ -10,11 +10,10 @@ pub fn print_db_info(path: &Path) -> Result<()> {
     )?;
     let table_names = stmt.query_map([], |row| row.get::<_, String>(0))?;
 
-    let mut table_count:i64 = 0;
     println!("{:<3} | {:<20} | {:<10}", "No.", "Table Name", "Rows");
     println!("{}", "-".repeat(35));
 
-    for name_result in table_names {
+    for (index, name_result) in table_names.enumerate() {
         let name = name_result?;
         let row_count: i64 = conn.query_row(
             &format!("SELECT COUNT(*) FROM \"{}\"", name),
@@ -26,8 +25,7 @@ pub fn print_db_info(path: &Path) -> Result<()> {
                                                // count from the result of the query.
         )?;
 
-        table_count += 1;
-        println!("{:<3} | {:<20} | {:<10}", table_count, name, row_count);
+        println!("{:<3} | {:<20} | {:<10}", index + 1, name, row_count);
     }
     Ok(())
 }
