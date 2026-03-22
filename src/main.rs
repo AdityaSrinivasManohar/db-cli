@@ -60,6 +60,12 @@ fn main() {
             }
         }
         Commands::Merge { paths, output } => {
+            // Validate if we have at least 2 paths to merge
+            if paths.len() < 2 {
+                eprintln!("Error: You need at least 2 databases to perform a merge.");
+                return;
+            }
+
             let mut valid_paths = Vec::new();
             for path in paths {
                 match path.canonicalize() {
