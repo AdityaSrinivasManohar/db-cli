@@ -37,27 +37,27 @@ enum Commands {
     Version,
 }
 
+fn get_absolute_path(path: &PathBuf) -> PathBuf {
+    match path.canonicalize() {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Error: {} - {}", path.display(), e);
+            std::process::exit(1);
+        }
+    }
+}
+
 fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
         Commands::Info { path } => {
-            match path.canonicalize() {
-                Ok(full_path) => println!("Inspecting absolute path: {}", full_path.display()),
-                Err(err) => {
-                    eprintln!("Could not find file at {} \nError: {}", path.display(), err);
-                    return;
-                }
-            }
+            let full_path = get_absolute_path(path);
+            println!("Inspecting absolute path: {}", full_path.display());
         }
         Commands::Cat { path } => {
-            match path.canonicalize() {
-                Ok(full_path) => println!("Printing content of: {}", full_path.display()),
-                Err(err) => {
-                    eprintln!("Could not find file at {} \nError: {}", path.display(), err);
-                    return;
-                }
-            }
+            let full_path = get_absolute_path(path);
+            println!("Printing content of: {}", full_path.display());
         }
         Commands::Merge { paths, output } => {
             // Validate if we have at least 2 paths to merge
@@ -68,13 +68,8 @@ fn main() {
 
             let mut valid_paths = Vec::new();
             for path in paths {
-                match path.canonicalize() {
-                    Ok(full_path) => {valid_paths.push(full_path);},
-                    Err(err) => {
-                        eprintln!("Could not find file at {} \nError: {}", path.display(), err);
-                        return;
-                    },
-                }
+                let full_path = get_absolute_path(path);
+                valid_paths.push(full_path);
             }
 
             // If we got here, all paths are valid
