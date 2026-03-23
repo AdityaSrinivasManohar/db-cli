@@ -2,6 +2,12 @@
 name = "db-cli"
 version = "0.1.0"
 edition = "2024"
+description = "A high-performance CLI tool for inspecting and merging SQLite databases"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/AdityaSrinivasManohar/db-cli"
+readme = "README.md"
+keywords = ["sqlite", "database", "cli", "merge", "sql"]
+categories = ["command-line-utilities", "database-implementations"]
 
 [dependencies]
 clap = { version = "4.5.56", features = ["derive"] }
