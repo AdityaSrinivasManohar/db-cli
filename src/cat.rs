@@ -2,12 +2,13 @@
 use rusqlite::{Connection, Result, types::ValueRef};
 use std::path::Path;
 
+// Shows the content of a table in a SQLite database.
 pub fn print_table_content(path: &Path, table_name: &str) -> Result<()> {
     let conn = Connection::open(path)?;
 
     // 1. Prepare the query (using double quotes for the table name)
     let mut stmt = conn.prepare(&format!("SELECT * FROM \"{}\"", table_name))?;
-    
+
     // 2. Get column names for the header
     let col_names: Vec<String> = stmt
         .column_names()
@@ -30,7 +31,7 @@ pub fn print_table_content(path: &Path, table_name: &str) -> Result<()> {
         for i in 0..col_names.len() {
             // Get a "ValueRef" which can be any SQLite type
             let value = row.get_ref(i)?;
-            
+
             // Convert the SQLite value to a printable string
             let val_str = match value {
                 ValueRef::Null => "NULL".to_string(),

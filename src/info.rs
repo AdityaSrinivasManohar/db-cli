@@ -2,6 +2,7 @@
 use rusqlite::{Connection, Result};
 use std::path::Path;
 
+// Prints a high-level summary of the database structure, including table names, row counts, and column counts.
 pub fn print_db_info(path: &Path) -> Result<()> {
     let conn = Connection::open(path)?;
 
@@ -19,16 +20,16 @@ pub fn print_db_info(path: &Path) -> Result<()> {
             &format!("SELECT COUNT(*) FROM \"{}\"", name),
             [],
             |row| row.get(0), // a closure in rust is similar to lambda in python,
-                                               // it allows us to define an inline function that can 
-                                               // capture variables from its surrounding scope. 
-                                               // In this case, we are using it to extract the row 
+                                               // it allows us to define an inline function that can
+                                               // capture variables from its surrounding scope.
+                                               // In this case, we are using it to extract the row
                                                // count from the result of the query.
         )?;
-        
+
         // 2. Get Column Count
         // PRAGMA table_info returns one row for every column in the table
         let mut col_stmt = conn.prepare(&format!("PRAGMA table_info(\"{}\")", name))?;
-        let column_results = col_stmt.query_map([], |_| Ok(()))?; 
+        let column_results = col_stmt.query_map([], |_| Ok(()))?;
         let column_count = column_results.count();
 
         println!("{:<3} | {:<20} | {:<10} | {:<10}", index + 1, name, row_count, column_count);

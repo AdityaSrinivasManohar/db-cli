@@ -1,6 +1,7 @@
 use rusqlite::{Connection, Result};
 use std::path::Path;
 
+// Merges data from a source SQLite database into a target database.
 pub fn merge_databases(
     source_path: &Path,
     target_conn: &mut Connection,
