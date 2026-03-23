@@ -57,25 +57,51 @@ pub fn merge_databases(
         } else {
             // SCENARIO: Table exists -> Check Schema
             if schemas_match(&tx, &table)? {
-                let insert_verb = if no_duplicates {
-                    println!("   ~ Table {:<25}: Schema matches. Duplicates will be ignored", table);
-                    "INSERT OR IGNORE"
+                let sql = if no_duplicates {
+                    println!(
+                        "   ~ Table {:<25}: Skipping duplicates via INSERT OR IGNORE",
+                        table
+                    );
+                    format!(
+                        "INSERT OR IGNORE INTO main.\"{}\" SELECT * FROM source_db.\"{}\"",
+                        table, table
+                    )
                 } else {
-                    println!("   ~ Table {:<25}: Schema matches. Duplicates will be added", table);
-                    "INSERT"
-                };
+                    println!(
+                        "   ~ Table {:<25}: Appending with Auto-ID (stripping PK)",
+                        table
+                    );
 
-                let sql = format!(
-                    "{} INTO main.\"{}\" SELECT * FROM source_db.\"{}\"",
-                    insert_verb, table, table
-                );
+                    // 1. Get column names, filtering out the Primary Key
+                    let mut col_stmt = tx.prepare(&format!("PRAGMA table_info(\"{}\")", table))?;
+                    let columns: Vec<String> = col_stmt
+                        .query_map([], |row| {
+                            let name: String = row.get(1)?;
+                            let is_pk: i32 = row.get(5)?; // pk column is index 5
+                            Ok((name, is_pk))
+                        })?
+                        .filter_map(|res| {
+                            let (name, is_pk) = res.ok()?;
+                            if is_pk == 0 {
+                                Some(format!("\"{}\"", name))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+
+                    let col_list = columns.join(", ");
+
+                    // 2. Build the specific INSERT that lets the target handle the ID
+                    format!(
+                        "INSERT INTO main.\"{}\" ({}) SELECT {} FROM source_db.\"{}\"",
+                        table, col_list, col_list, table
+                    )
+                };
 
                 tx.execute(&sql, [])?;
             } else {
-                eprintln!(
-                    "   ! Warning: Schema mismatch for '{}'. Skipping.",
-                    table
-                );
+                eprintln!("   ! Warning: Schema mismatch for '{}'. Skipping.", table);
             }
         }
     }
