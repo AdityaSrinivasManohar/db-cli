@@ -16,7 +16,12 @@ db-cli is a command-line utility built in Rust for inspecting, querying, and int
 ## Installation
 Ensure you have the Rust toolchain installed.
 
+
 ```
+# install using cargo
+cargo install db-cli
+
+# build from source
 git clone https://github.com/your-username/db-cli.git
 cd db-cli
 cargo build --release
