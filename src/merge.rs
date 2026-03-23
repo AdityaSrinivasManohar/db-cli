@@ -11,7 +11,7 @@ pub fn merge_databases(
     let attach_query = format!("ATTACH DATABASE '{}' AS source_db", source_path.display());
     target_conn.execute(&attach_query, [])?;
 
-    // 2. EAGERLY collect table names
+    // 2. get table names
     // We pull these into a Vec so we aren't holding a cursor open while we write.
     let tables: Vec<String> = {
         let mut stmt = target_conn.prepare(
@@ -38,7 +38,7 @@ pub fn merge_databases(
         )?;
 
         if !exists {
-            // SCENARIO: Table doesn't exist in target -> Create and Copy
+            // Table doesn't exist in target -> Create and Copy
             println!("   + New table: {:<25}: Creating and copying...", table);
 
             let create_sql: String = tx.query_row(
@@ -55,7 +55,7 @@ pub fn merge_databases(
             );
             tx.execute(&move_sql, [])?;
         } else {
-            // SCENARIO: Table exists -> Check Schema
+            // Table exists -> Check Schema
             if schemas_match(&tx, &table)? {
                 let sql = if no_duplicates {
                     println!(
@@ -72,7 +72,7 @@ pub fn merge_databases(
                         table
                     );
 
-                    // 1. Get column names, filtering out the Primary Key
+                    // 1. Get column names, filtering out the Primary Key (pk)
                     let mut col_stmt = tx.prepare(&format!("PRAGMA table_info(\"{}\")", table))?;
                     let columns: Vec<String> = col_stmt
                         .query_map([], |row| {
@@ -115,6 +115,7 @@ pub fn merge_databases(
     Ok(())
 }
 
+// Function to check if the schema of a table in the target database matches the source database.
 fn schemas_match(conn: &Connection, table_name: &str) -> Result<bool> {
     // Compare the CREATE TABLE statements for equality
     let sql_main: String = conn.query_row(
