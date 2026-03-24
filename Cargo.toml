@@ -1,6 +1,6 @@
 [package]
 name = "db-cli"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Aditya Srinivas Manohar <adityasrinivasmanohar@gmail.com>"]
 edition = "2024"
 description = "A high-performance CLI tool for inspecting and merging SQLite databases"

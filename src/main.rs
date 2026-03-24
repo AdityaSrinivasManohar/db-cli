@@ -1,6 +1,7 @@
 mod cat;
 mod info;
 mod merge;
+mod diff;
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -27,6 +28,17 @@ enum Commands {
         /// Path to the sqlite database file
         path: PathBuf,
         /// Name of the table to print out
+        table: String,
+    },
+
+    /// Compare two databases and print rows that are in one but not the other
+    Diff {
+        /// Path to the first sqlite database file
+        db_a: PathBuf,
+        /// Path to the second sqlite database file
+        db_b: PathBuf,
+        /// Name of the table to compare
+        #[arg(short, long)]
         table: String,
     },
 
@@ -83,6 +95,16 @@ fn main() {
                 std::process::exit(1);
             }
         }
+
+        Commands::Diff { db_a, db_b, table } => {
+            let path_a = get_absolute_path(db_a);
+            let path_b = get_absolute_path(db_b);
+            if let Err(e) = diff::compare_tables(&path_a, &path_b, table) {
+                eprintln!("Error comparing tables: {}", e);
+                std::process::exit(1);
+            }
+        }
+
         Commands::Merge {
             paths,
             output,
